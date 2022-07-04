@@ -14,17 +14,6 @@ final class MapViewController: UIViewController {
     let mapViewModel = MapViewModel()
     private var observers: Set<AnyCancellable> = []
     
-    lazy var changeCategoryButton: UIButton = {
-        let button = UIButton()
-        button.backgroundColor = .blue
-        button.setTitle("Category", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 10
-        button.clipsToBounds = true
-        button.addTarget(self, action: #selector(changeCategory), for: .touchUpInside)
-        return button
-    }()
-    
     lazy var userTrackingButton: MKUserTrackingButton = {
         let button = MKUserTrackingButton(mapView: self.mapView)
         button.isHidden = true
@@ -40,23 +29,17 @@ final class MapViewController: UIViewController {
         configureView()
         configureMapView()
         configureBindings()
-        addAnnotation()
+        addAnnotation(shops: mapViewModel.model.shops)
     }
     
     private func configureView() {
         mapView.addSubview(userTrackingButton)
-        mapView.addSubview(changeCategoryButton)
         
         NSLayoutConstraint.activate([
             userTrackingButton.widthAnchor.constraint(equalToConstant: 50),
             userTrackingButton.heightAnchor.constraint(equalToConstant: 50),
             userTrackingButton.rightAnchor.constraint(equalTo: mapView.rightAnchor, constant: -50),
             userTrackingButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -50),
-            
-            changeCategoryButton.widthAnchor.constraint(equalToConstant: 50),
-            changeCategoryButton.heightAnchor.constraint(equalToConstant: 50),
-            changeCategoryButton.leftAnchor.constraint(equalTo: mapView.leftAnchor, constant: 50),
-            changeCategoryButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -50),
         ])
     }
     
@@ -90,16 +73,9 @@ final class MapViewController: UIViewController {
         mapView.removeAnnotations(mapView.annotations)
     }
     
-    private func addAnnotation(category: ShopCategory? = nil) {
-        if category == nil {
-            mapView.addAnnotations(mapViewModel.model.shops.map{ ShopAnnotationView(location: $0.location) })
-        } else {
-            mapView.addAnnotations(mapViewModel.model.shops.filter{ category!.isShopIncludedCategory(subCategory: $0.category) }.map{ ShopAnnotationView(location: $0.location) })
-        }
-    }
-    
-    @objc private func changeCategory() {
-        self.removeAnnotation()
-        self.addAnnotation(category: .hair)
+    private func addAnnotation(shops: [Shop]) {
+        mapView.addAnnotations(
+            shops.map{ ShopAnnotationView(location: $0.location) }
+        )
     }
 }
